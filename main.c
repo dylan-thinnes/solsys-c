@@ -18,7 +18,7 @@ int G_DEBUG = 0;
 int seed1;
 int seed2;
 
-enum demotype { recursive, simple };
+enum demotype { recursive, simple, simple_logint };
 
 int main(int argc, char** argv) {
     if (argc <= 1) {
@@ -36,6 +36,9 @@ int main(int argc, char** argv) {
         } else if (is_prefix("-s", argv[ii]) || is_prefix("--simple", argv[ii])) {
             flag = simple;
             argv[ii] = NULL;
+        } else if (is_prefix("-l", argv[ii]) || is_prefix("--logint", argv[ii])) {
+            flag = simple_logint;
+            argv[ii] = NULL;
         } else if (is_prefix("-h", argv[ii]) || is_prefix("--help", argv[ii])) {
             print_help(*argv);
             exit(0);
@@ -45,9 +48,12 @@ int main(int argc, char** argv) {
         }
     }
 
-    // Report recursive/simple
+    // Setup/report demo type
     if (flag == recursive) {
         debug_log("RECURSIVE DEMO\n");
+    } else if (flag == simple_logint) {
+        debug_log("LOGINT DEMO\n");
+        logint_initialize();
     } else {
         debug_log("SIMPLE DEMO\n");
     }
@@ -62,11 +68,18 @@ int main(int argc, char** argv) {
         strcpy(inp, argv[ii]);
         if (flag == recursive) {
             recursive_demo(inp);
+        } else if (flag == simple_logint) {
+            simple_logint_demo(inp);
         } else {
             simple_demo(inp);
         }
     }
     free(inp);
+
+    // Teardown demo type
+    if (flag == simple_logint) {
+        logint_free();
+    }
 }
 
 // Simple checker for string prefixes
@@ -452,5 +465,13 @@ composite* factor_composite (char* number) {
 
     free_worklist(head);
     return full_factor_tree;
+}
+
+// Logarithmic integral demo
+int simple_logint_demo (char* number) {
+    char* result = logint(number);
+    printf("%s\n", result);
+    free(result);
+    return 0;
 }
 

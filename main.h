@@ -47,7 +47,7 @@ msieve_obj * make_default_msieve_obj();
 msieve_obj * run_default_msieve();
 
 int simple_demo(char* number);
-
+int simple_logint_demo(char* number);
 int recursive_demo(char* number);
 composite* factor_composite (char* number);
 
