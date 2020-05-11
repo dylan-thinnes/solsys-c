@@ -78,7 +78,9 @@ int is_prefix (char* pre, char* str) {
 // I/O UTILITIES
 
 void print_help (char* progname) {
-    fprintf(stderr, "USAGE: %s <flags> <numbers>\n", progname);
+    if (progname != NULL) {
+        fprintf(stderr, "USAGE: %s <flags> <numbers>\n", progname);
+    }
     fprintf(stderr, "FLAGS:\n");
     fprintf(stderr, " -s : run simple demo\n");
     fprintf(stderr, " -r : run recursive demo\n");
