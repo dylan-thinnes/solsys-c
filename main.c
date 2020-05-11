@@ -127,6 +127,8 @@ void free_composite (composite* composite, int freenumber) {
         factor = next_factor;
     }
 
+    // Only free the number if told to - this allows us to not the collect the
+    // head of a composite tree, aka the "input"
     if (freenumber) free(composite->value);
     free(composite);
 }
