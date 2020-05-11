@@ -95,8 +95,9 @@ void print_help (char* progname) {
         fprintf(stderr, "USAGE: %s <flags> <numbers>\n", progname);
     }
     fprintf(stderr, "FLAGS:\n");
+    fprintf(stderr, " -r : run recursive demo <default demo>\n");
     fprintf(stderr, " -s : run simple demo\n");
-    fprintf(stderr, " -r : run recursive demo\n");
+    fprintf(stderr, " -l : run logint demo\n");
     fprintf(stderr, " -d : print debug info\n");
     fprintf(stderr, " -h : show help\n");
 }
