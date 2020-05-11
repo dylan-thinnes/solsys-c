@@ -52,8 +52,8 @@ void get_random_seeds(uint32* seed1, uint32* seed2);
 msieve_obj * make_default_msieve_obj();
 msieve_obj * run_default_msieve();
 
-int simple_demo(char* number);
-int simple_logint_demo(char* number);
+int factorization_demo(char* number);
+int logint_demo(char* number);
 int recursive_demo(char* number);
 composite* factor_composite (char* number);
 

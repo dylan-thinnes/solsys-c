@@ -18,7 +18,7 @@ int G_DEBUG = 0;
 int seed1;
 int seed2;
 
-enum demotype { recursive, simple, simple_logint };
+enum demotype { flag_recursive, flag_factorization, flag_logint };
 
 int main(int argc, char** argv) {
     if (argc <= 1) {
@@ -28,16 +28,16 @@ int main(int argc, char** argv) {
     }
 
     // Detect flags
-    enum demotype flag = recursive;
+    enum demotype flag = flag_recursive;
     for (int ii = 1; ii < argc; ii++) {
         if (is_prefix("-r", argv[ii]) || is_prefix("--recursive", argv[ii])) {
-            flag = recursive;
+            flag = flag_recursive;
             argv[ii] = NULL;
-        } else if (is_prefix("-s", argv[ii]) || is_prefix("--simple", argv[ii])) {
-            flag = simple;
+        } else if (is_prefix("-f", argv[ii]) || is_prefix("--factorization", argv[ii])) {
+            flag = flag_factorization;
             argv[ii] = NULL;
         } else if (is_prefix("-l", argv[ii]) || is_prefix("--logint", argv[ii])) {
-            flag = simple_logint;
+            flag = flag_logint;
             argv[ii] = NULL;
         } else if (is_prefix("-h", argv[ii]) || is_prefix("--help", argv[ii])) {
             print_help(*argv);
@@ -49,13 +49,13 @@ int main(int argc, char** argv) {
     }
 
     // Setup/report demo type
-    if (flag == recursive) {
+    if (flag == flag_recursive) {
         debug_log("RECURSIVE DEMO\n");
-    } else if (flag == simple_logint) {
+    } else if (flag == flag_logint) {
         debug_log("LOGINT DEMO\n");
         logint_initialize();
     } else {
-        debug_log("SIMPLE DEMO\n");
+        debug_log("FACTORIZATION DEMO\n");
     }
 
     // Set initial seeds
@@ -66,18 +66,18 @@ int main(int argc, char** argv) {
     for (int ii = 1; ii < argc; ii++) {
         if (argv[ii] == NULL) continue;
         strcpy(inp, argv[ii]);
-        if (flag == recursive) {
+        if (flag == flag_recursive) {
             recursive_demo(inp);
-        } else if (flag == simple_logint) {
-            simple_logint_demo(inp);
+        } else if (flag == flag_logint) {
+            logint_demo(inp);
         } else {
-            simple_demo(inp);
+            factorization_demo(inp);
         }
     }
     free(inp);
 
     // Teardown demo type
-    if (flag == simple_logint) {
+    if (flag == flag_logint) {
         logint_free();
     }
 }
@@ -96,7 +96,7 @@ void print_help (char* progname) {
     }
     fprintf(stderr, "FLAGS:\n");
     fprintf(stderr, " -r : run recursive demo <default demo>\n");
-    fprintf(stderr, " -s : run simple demo\n");
+    fprintf(stderr, " -f : run factorization demo\n");
     fprintf(stderr, " -l : run logint demo\n");
     fprintf(stderr, " -d : print debug info\n");
     fprintf(stderr, " -h : show help\n");
@@ -333,7 +333,7 @@ msieve_obj * make_default_msieve_obj() {
 /*--------------------------------------------------------------------*/
 
 // SIMPLE DEMO, RUNS FACTORIZATION ON EACH ARGV
-int simple_demo(char* number) {
+int factorization_demo(char* number) {
 
 	msieve_factor *factor;
 
@@ -471,7 +471,7 @@ composite* factor_composite (char* number) {
 }
 
 // Logarithmic integral demo
-int simple_logint_demo (char* number) {
+int logint_demo (char* number) {
     char* result = logint(number);
     printf("%s\n", result);
     free(result);
