@@ -15,11 +15,17 @@ typedef struct composite {
 } composite;
 
 typedef struct factor {
-    struct composite* spacer;
+    // Next factor in linked list
     struct factor* next;
+
+    // Values of factor itself
     char* base;
 	enum msieve_factor_type factor_type;
     struct composite* power;
+    char* pi;
+
+    // Difference between this factor and preceding factor
+    struct composite* spacer;
 } factor;
 
 // fifo queue as worklist
