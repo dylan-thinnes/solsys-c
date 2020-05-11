@@ -1,0 +1,3 @@
+[submodule "primecount"]
+	path = primecount
+	url = https://github.com/kimwalisch/primecount.git
