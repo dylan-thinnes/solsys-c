@@ -1,0 +1,11 @@
+#!/bin/bash
+
+([[ -e msieve-1.53 ]] || tar -xf msieve153_src.tar.gz)
+(cd msieve-1.53; make all)
+(cd primecount; cmake .; make)
+
+INCLUDES="-Imsieve-1.53/include -Iprimecount/include -Ilogint/"
+LOCAL_LIBS="msieve-1.53/libmsieve.a primecount/libprimecount.a primecount/lib/primesieve/libprimesieve.a logint/li.o"
+SYSTEM_LIBS="-ldl -lz -lgmp -lm -lpthread -lgomp -lstdc++ -lmpfr"
+
+gcc $INCLUDES main.c $LOCAL_LIBS $SYSTEM_LIBS
