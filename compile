@@ -3,6 +3,7 @@
 ([[ -e msieve-1.53 ]] || tar -xf msieve153_src.tar.gz)
 (cd msieve-1.53; make all)
 (cd primecount; cmake .; make)
+(cd logint; ./compile)
 
 INCLUDES="-Imsieve-1.53/include -Iprimecount/include -Ilogint/"
 LOCAL_LIBS="msieve-1.53/libmsieve.a primecount/libprimecount.a primecount/lib/primesieve/libprimesieve.a logint/li.o"
