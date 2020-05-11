@@ -22,8 +22,8 @@ enum demotype { recursive, simple };
 
 int main(int argc, char** argv) {
     if (argc <= 1) {
-        print_help();
-        fprintf(stderr, "No arguments supplied.\n");
+        fprintf(stderr, "ERROR: No arguments supplied.\n");
+        print_help(*argv);
         exit(1);
     }
 
