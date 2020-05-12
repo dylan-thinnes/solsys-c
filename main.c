@@ -104,6 +104,7 @@ void print_help (char* progname) {
     fprintf(stderr, "FLAGS:\n");
     fprintf(stderr, " -r : run recursive demo <default demo>\n");
     fprintf(stderr, " -f : run factorization demo\n");
+    fprintf(stderr, " -p : run primecount demo\n");
     fprintf(stderr, " -l : run logint demo\n");
     fprintf(stderr, " -d : print debug info\n");
     fprintf(stderr, " -h : show help\n");
