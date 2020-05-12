@@ -18,7 +18,7 @@ int G_DEBUG = 0;
 int seed1;
 int seed2;
 
-enum demotype { flag_recursive, flag_factorization, flag_primecount, flag_logint };
+enum demotype { flag_recursive, flag_factorization, flag_primecount, flag_logint, flag_logint_err };
 
 int main(int argc, char** argv) {
     if (argc <= 1) {
@@ -30,22 +30,25 @@ int main(int argc, char** argv) {
     // Detect flags
     enum demotype flag = flag_recursive;
     for (int ii = 1; ii < argc; ii++) {
-        if (is_prefix("-r", argv[ii]) || is_prefix("--recursive", argv[ii])) {
+        if (streq("-r", argv[ii]) || streq("--recursive", argv[ii])) {
             flag = flag_recursive;
             argv[ii] = NULL;
-        } else if (is_prefix("-f", argv[ii]) || is_prefix("--factorization", argv[ii])) {
+        } else if (streq("-f", argv[ii]) || streq("--factorization", argv[ii])) {
             flag = flag_factorization;
             argv[ii] = NULL;
-        } else if (is_prefix("-p", argv[ii]) || is_prefix("--primecount", argv[ii])) {
+        } else if (streq("-p", argv[ii]) || streq("--primecount", argv[ii])) {
             flag = flag_primecount;
             argv[ii] = NULL;
-        } else if (is_prefix("-l", argv[ii]) || is_prefix("--logint", argv[ii])) {
+        } else if (streq("-l", argv[ii]) || streq("--logint", argv[ii])) {
             flag = flag_logint;
             argv[ii] = NULL;
-        } else if (is_prefix("-h", argv[ii]) || is_prefix("--help", argv[ii])) {
+        } else if (streq("-le", argv[ii]) || streq("--logint-err", argv[ii])) {
+            flag = flag_logint_err;
+            argv[ii] = NULL;
+        } else if (streq("-h", argv[ii]) || streq("--help", argv[ii])) {
             print_help(*argv);
             exit(0);
-        } else if (is_prefix("-d", argv[ii]) || is_prefix("--debug", argv[ii])) {
+        } else if (streq("-d", argv[ii]) || streq("--debug", argv[ii])) {
             G_DEBUG = 1;
             argv[ii] = NULL;
         }
@@ -58,6 +61,9 @@ int main(int argc, char** argv) {
         debug_log("PRIMECOUNT DEMO\n");
     } else if (flag == flag_logint) {
         debug_log("LOGINT DEMO\n");
+        logint_initialize();
+    } else if (flag == flag_logint_err) {
+        debug_log("LOGINT %%ERR DEMO\n");
         logint_initialize();
     } else {
         debug_log("FACTORIZATION DEMO\n");
@@ -77,6 +83,8 @@ int main(int argc, char** argv) {
             primecount_demo(inp);
         } else if (flag == flag_logint) {
             logint_demo(inp);
+        } else if (flag == flag_logint_err) {
+            logint_err_demo(inp);
         } else {
             factorization_demo(inp);
         }
@@ -86,12 +94,14 @@ int main(int argc, char** argv) {
     // Teardown demo type
     if (flag == flag_logint) {
         logint_free();
+    } else if (flag == flag_logint_err) {
+        logint_free();
     }
 }
 
-// Simple checker for string prefixes
-int is_prefix (char* pre, char* str) {
-    return strncmp(pre, str, strlen(pre)) == 0;
+// Simple checker for string equality
+int streq (char* a, char* b) {
+    return strcmp(a, b) == 0;
 }
 
 /*--------------------------------------------------------------------*/
@@ -490,3 +500,34 @@ int logint_demo (char* number) {
     return 0;
 }
 
+// Primecount / Logint demo
+int logint_err_demo (char* s_x) {
+
+    // Parse string number to int64_t
+    int64_t i_x;
+    sscanf(s_x, "%ld", &i_x);
+
+    // Calculate pi(x)
+    int64_t pix = primecount_pi(i_x);
+
+    // Calculate li(x)
+    int64_t lix;
+    char* s_lix = logint(s_x);
+    sscanf(s_lix, "%ld", &lix);
+    free(s_lix);
+
+    int64_t diff = lix - pix;
+    mpfr_t ratio;
+
+    mpfr_init2(ratio, 512);
+
+    mpfr_set_si(ratio, pix, MPFR_RNDN);
+    mpfr_div_si(ratio, ratio, lix, MPFR_RNDN);
+    mpfr_si_sub(ratio, 1, ratio, MPFR_RNDN);
+
+    mpfr_printf("%ld / %ld = %ld (%.20Rf)\n", pix, lix, diff, ratio);
+
+    mpfr_clear(ratio);
+
+    return 0;
+}

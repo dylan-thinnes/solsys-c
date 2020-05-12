@@ -55,8 +55,9 @@ msieve_obj * run_default_msieve();
 int factorization_demo(char* number);
 int primecount_demo(char* number);
 int logint_demo(char* number);
+int logint_err_demo(char* number);
 int recursive_demo(char* number);
 int schedule_power (worklist* curr, factor* factor_group, int power);
 composite* factor_composite (char* number);
 
-int is_prefix(char* pre, char* str);
+int streq(char* a, char* b);
