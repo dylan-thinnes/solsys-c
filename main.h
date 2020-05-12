@@ -57,7 +57,9 @@ int primecount_demo(char* number);
 int logint_demo(char* number);
 int logint_err_demo(char* number);
 int recursive_demo(char* number);
-int schedule_power (worklist* curr, factor* factor_group, int power);
+int msieve_factor_eq_factor_group (factor* factor_group, msieve_factor* msieve_factor);
+void schedule_power (worklist* curr, factor* factor_group, int power);
+factor* initialize_factor_group (composite* parent, factor* previous_group, msieve_factor* source);
 composite* factor_composite (char* number);
 
 int streq(char* a, char* b);

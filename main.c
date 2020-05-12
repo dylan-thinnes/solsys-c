@@ -427,26 +427,12 @@ composite* factor_composite (char* number) {
                 debug_log("Comparing: %s %s %d\n", msieve_factor->number, factor_group->base, strcmp(factor_group->base, msieve_factor->number));
             }
 
-            if (factor_group != NULL && strcmp(factor_group->base, msieve_factor->number) == 0) {
+            if (msieve_factor_eq_factor_group(factor_group, msieve_factor)) {
                 power++;
             } else {
-                // if the last power group occured more than once, schedule a sub-factorization
+                // Schedule a power to be factorized if necessary
                 schedule_power(curr, factor_group, power);
-
-                // Initialize new factor_group, link to previous if necessary
-                if (factor_group != NULL) {
-                    factor_group->next = malloc(sizeof(factor));
-                    factor_group = factor_group->next;
-                } else {
-                    factor_group = malloc(sizeof(factor));
-                    curr->todo->factors = factor_group;
-                }
-
-                // Set next as NULL, copy msieve_factor to base
-                factor_group->next = NULL;
-                factor_group->factor_type = msieve_factor->factor_type;
-                factor_group->base = malloc(sizeof(char) * (strlen(msieve_factor->number) + 1));
-                strcpy(factor_group->base, msieve_factor->number);
+                factor_group = initialize_factor_group(curr->todo, factor_group, msieve_factor);
 
                 power = 1;
             }
@@ -454,7 +440,7 @@ composite* factor_composite (char* number) {
             msieve_factor = msieve_factor->next;
         }
 
-        // if the last power group occured more than once, schedule a sub-factorization
+        // Schedule a power to be factorized if necessary
         schedule_power(curr, factor_group, power);
 
         msieve_obj_free(o);
@@ -466,8 +452,31 @@ composite* factor_composite (char* number) {
     return full_factor_tree;
 }
 
-int schedule_power (worklist* curr, factor* factor_group, int power) {
-    // if the last power group occured more than once, schedule a sub-factorization
+int msieve_factor_eq_factor_group (factor* factor_group, msieve_factor* msieve_factor) {
+    return factor_group != NULL && strcmp(factor_group->base, msieve_factor->number) == 0;
+}
+
+factor* initialize_factor_group (composite* parent, factor* previous_group, msieve_factor* source) {
+    factor* new_group = malloc(sizeof(factor));
+
+    // Link to previous group, or to parent if no previous group exists
+    if (previous_group == NULL) {
+        parent->factors = new_group;
+    } else {
+        previous_group->next = new_group;
+    }
+
+    // Set next as NULL, copy source to base
+    new_group->next = NULL;
+    new_group->factor_type = source->factor_type;
+    new_group->base = malloc(sizeof(char) * (strlen(source->number) + 1));
+    strcpy(new_group->base, source->number);
+
+    return new_group;
+}
+
+void schedule_power (worklist* curr, factor* factor_group, int power) {
+    // If the last power group occured more than once, schedule a sub-factorization
     if (factor_group != NULL) {
         debug_log("Found factors group: %s ^ %d\n", factor_group->base, power);
 
