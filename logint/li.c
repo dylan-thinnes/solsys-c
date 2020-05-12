@@ -135,8 +135,8 @@ char * logint (char * input) {
     mpfr_init_set_ui (output, 0, MPFR_RNDN);
 
     logint_mpfr (output, x);
-    char * buf = (char *) malloc(1000);
-    mpfr_sprintf(buf, "%.0Rf", output);
+    char* buf;
+    mpfr_asprintf(&buf, "%.0Rf", output);
 
     mpfr_clear(x);
     mpfr_clear(output);
