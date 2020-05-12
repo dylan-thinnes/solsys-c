@@ -53,6 +53,7 @@ msieve_obj * make_default_msieve_obj();
 msieve_obj * run_default_msieve();
 
 int factorization_demo(char* number);
+int primecount_demo(char* number);
 int logint_demo(char* number);
 int recursive_demo(char* number);
 composite* factor_composite (char* number);

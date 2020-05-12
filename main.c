@@ -18,7 +18,7 @@ int G_DEBUG = 0;
 int seed1;
 int seed2;
 
-enum demotype { flag_recursive, flag_factorization, flag_logint };
+enum demotype { flag_recursive, flag_factorization, flag_primecount, flag_logint };
 
 int main(int argc, char** argv) {
     if (argc <= 1) {
@@ -36,6 +36,9 @@ int main(int argc, char** argv) {
         } else if (is_prefix("-f", argv[ii]) || is_prefix("--factorization", argv[ii])) {
             flag = flag_factorization;
             argv[ii] = NULL;
+        } else if (is_prefix("-p", argv[ii]) || is_prefix("--primecount", argv[ii])) {
+            flag = flag_primecount;
+            argv[ii] = NULL;
         } else if (is_prefix("-l", argv[ii]) || is_prefix("--logint", argv[ii])) {
             flag = flag_logint;
             argv[ii] = NULL;
@@ -51,6 +54,8 @@ int main(int argc, char** argv) {
     // Setup/report demo type
     if (flag == flag_recursive) {
         debug_log("RECURSIVE DEMO\n");
+    } else if (flag == flag_primecount) {
+        debug_log("PRIMECOUNT DEMO\n");
     } else if (flag == flag_logint) {
         debug_log("LOGINT DEMO\n");
         logint_initialize();
@@ -68,6 +73,8 @@ int main(int argc, char** argv) {
         strcpy(inp, argv[ii]);
         if (flag == flag_recursive) {
             recursive_demo(inp);
+        } else if (flag == flag_primecount) {
+            primecount_demo(inp);
         } else if (flag == flag_logint) {
             logint_demo(inp);
         } else {
@@ -468,6 +475,16 @@ composite* factor_composite (char* number) {
 
     free_worklist(head);
     return full_factor_tree;
+}
+
+// Primecount demo
+int primecount_demo (char* number) {
+    int64_t input;
+    sscanf(number, "%ld", &input);
+
+    int64_t result = primecount_pi(input);
+    printf("%ld\n", result);
+    return 0;
 }
 
 // Logarithmic integral demo
