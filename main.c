@@ -421,18 +421,7 @@ composite* factor_composite (char* number) {
                 power++;
             } else {
                 // if the last power group occured more than once, schedule a sub-factorization
-                if (factor_group != NULL) {
-                    debug_log("Found factors group: %s ^ %d\n", factor_group->base, power);
-
-                    if (power > 1) {
-                        char* powstr = malloc(sizeof(char) * 100);
-                        sprintf(powstr, "%d", power);
-                        composite* composite = append(curr, powstr);
-                        factor_group->power = composite;
-                    } else {
-                        factor_group->power = NULL;
-                    }
-                }
+                schedule_power(curr, factor_group, power);
 
                 // Initialize new factor_group, link to previous if necessary
                 if (factor_group != NULL) {
@@ -456,18 +445,7 @@ composite* factor_composite (char* number) {
         }
 
         // if the last power group occured more than once, schedule a sub-factorization
-        if (factor_group != NULL) {
-            debug_log("Found factors group: %s ^ %d\n", factor_group->base, power);
-
-            if (power > 1) {
-                char* powstr = malloc(sizeof(char) * 100);
-                sprintf(powstr, "%d", power);
-                composite* composite = append(curr, powstr);
-                factor_group->power = composite;
-            } else {
-                factor_group->power = NULL;
-            }
-        }
+        schedule_power(curr, factor_group, power);
 
         msieve_obj_free(o);
 
@@ -476,6 +454,22 @@ composite* factor_composite (char* number) {
 
     free_worklist(head);
     return full_factor_tree;
+}
+
+int schedule_power (worklist* curr, factor* factor_group, int power) {
+    // if the last power group occured more than once, schedule a sub-factorization
+    if (factor_group != NULL) {
+        debug_log("Found factors group: %s ^ %d\n", factor_group->base, power);
+
+        if (power > 1) {
+            char* powstr = malloc(sizeof(char) * 100);
+            sprintf(powstr, "%d", power);
+            composite* composite = append(curr, powstr);
+            factor_group->power = composite;
+        } else {
+            factor_group->power = NULL;
+        }
+    }
 }
 
 // Primecount demo
