@@ -177,15 +177,20 @@ void print_composite_indent (composite* composite, int depth) {
     gmp_printf("%*c%Zd\n", depth * 2 + 1, ' ', composite->value);
 
     factor* factor = composite->factors;
-    int index = 0;
     while (factor != NULL) {
-        gmp_printf("%*c %d:%Zd\n", depth * 2 + 1, ' ', index, factor->base);
+        if (factor->spacer != NULL) {
+            gmp_printf("%*c ===\n", depth * 2 + 1, ' ', factor->base, factor->pi);
+            print_composite_indent(factor->spacer, depth+1);
+            gmp_printf("%*c ===\n", depth * 2 + 1, ' ', factor->base, factor->pi);
+        }
+
+        gmp_printf("%*c %Zd (%Zd)\n", depth * 2 + 1, ' ', factor->base, factor->pi);
+
         if (factor->power == NULL) {
         } else {
             print_composite_indent(factor->power, depth+1);
         }
         factor = factor->next;
-        index++;
     }
 }
 
