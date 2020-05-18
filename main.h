@@ -17,8 +17,9 @@ typedef struct composite {
 } composite;
 
 typedef struct factor {
-    // Next factor in linked list
+    // Next and previous factor in linked list
     struct factor* next;
+    struct factor* prev;
 
     // Values of factor itself
     mpz_t base;
@@ -61,7 +62,12 @@ int logint_err_demo(char* number);
 int recursive_demo(char* number);
 int msieve_factor_eq_factor_group (factor* factor_group, mpz_t parsed);
 void schedule_power (worklist* curr, factor* factor_group, int power);
+void schedule_spacer (worklist* curr, factor* factor_group);
 factor* initialize_factor_group (composite* parent, factor* previous_group, msieve_factor* source, mpz_t parsed);
 composite* factor_composite (char* number);
 
 int streq(char* a, char* b);
+
+void pix_using_threshold (mpz_t x, mpz_t result);
+void primecount_gmp (mpz_t x, mpz_t result);
+void logint_gmp (mpz_t x, mpz_t result);

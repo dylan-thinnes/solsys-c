@@ -18,6 +18,8 @@ int G_DEBUG = 0;
 int seed1;
 int seed2;
 
+mpz_t logint_threshold;
+
 enum demotype { flag_recursive, flag_factorization, flag_primecount, flag_logint, flag_logint_err };
 
 int main(int argc, char** argv) {
@@ -26,6 +28,9 @@ int main(int argc, char** argv) {
         print_help(*argv);
         exit(1);
     }
+
+    mpz_init(logint_threshold);
+    mpz_set_str(logint_threshold, "10000000000000", 0);
 
     // Detect flags
     enum demotype flag = flag_recursive;
@@ -97,6 +102,8 @@ int main(int argc, char** argv) {
     } else if (flag == flag_logint_err) {
         logint_free();
     }
+
+    mpz_clear(logint_threshold);
 }
 
 // Simple checker for string equality
@@ -154,9 +161,10 @@ void free_composite (composite* composite, int freenumber) {
 // Frees factors with composites recursively
 void free_factor (factor* factor) {
     if (factor == NULL) return;
-    composite* composite = factor->power;
-    free_composite(composite, 1);
+    free_composite(factor->power, 1);
+    free_composite(factor->spacer, 1);
     mpz_clear(factor->base);
+    mpz_clear(factor->pi);
     free(factor);
 }
 
@@ -450,6 +458,10 @@ composite* factor_composite (char* number) {
             } else {
                 // Schedule a power to be factorized if necessary
                 schedule_power(curr, factor_group, power);
+                // Schedule a spacer if necessary
+                schedule_spacer(curr, factor_group);
+
+                // Create a new factor_group
                 factor_group = initialize_factor_group(curr->output, factor_group, msieve_factor, parsed_factor);
 
                 power = 1;
@@ -461,6 +473,8 @@ composite* factor_composite (char* number) {
 
         // Schedule a power to be factorized if necessary
         schedule_power(curr, factor_group, power);
+        // Schedule a spacer if necessary
+        schedule_spacer(curr, factor_group);
 
         msieve_obj_free(o);
 
@@ -481,8 +495,10 @@ factor* initialize_factor_group (composite* parent, factor* previous_group, msie
     // Link to previous group, or to parent if no previous group exists
     if (previous_group == NULL) {
         parent->factors = new_group;
+        new_group->prev = NULL;
     } else {
         previous_group->next = new_group;
+        new_group->prev = previous_group;
     }
 
     // Set next as NULL, copy source to base
@@ -491,7 +507,62 @@ factor* initialize_factor_group (composite* parent, factor* previous_group, msie
     mpz_init(new_group->base); // TODO: figure out "move" from parsed to base, rather than copy
     mpz_set(new_group->base, parsed);
 
+    // Calculate pi for the new_group's base value
+    pix_using_threshold(new_group->base, new_group->pi);
+
     return new_group;
+}
+
+void pix_using_threshold (mpz_t x, mpz_t result) {
+    if (mpz_cmp(x, logint_threshold) < 0) {
+        primecount_gmp(x, result);
+    } else {
+        logint_gmp(x, result);
+    }
+}
+
+void primecount_gmp (mpz_t x, mpz_t result) {
+    char* input = mpz_get_str(NULL, 10, x);
+    char* pix_str = malloc(sizeof(char) * 32);
+    primecount_pi_str(input, pix_str, 32);
+
+    mpz_init(result);
+    mpz_set_str(result, pix_str, 0);
+
+    free(input);
+    free(pix_str);
+}
+
+void logint_gmp (mpz_t x, mpz_t result) {
+    char* input = mpz_get_str(NULL, 10, x);
+    char* pix_str = logint(input);
+
+    mpz_init(result);
+    mpz_set_str(result, pix_str, 0);
+
+    free(input);
+    free(pix_str);
+}
+
+void schedule_spacer (worklist* curr, factor* factor_group) {
+    if (factor_group != NULL) {
+        mpz_t delta;
+        mpz_init(delta);
+        mpz_set(delta, factor_group->pi);
+
+        if (factor_group->prev != NULL) {
+            mpz_sub(delta, delta, factor_group->prev->pi);
+        }
+
+        mpz_sub_ui(delta, delta, 1);
+        if (mpz_sgn(delta) > 0) {
+            factor_group->spacer = append(curr, delta);
+        } else {
+            factor_group->spacer = NULL;
+        }
+
+        mpz_clear(delta);
+    }
 }
 
 void schedule_power (worklist* curr, factor* factor_group, int power) {
