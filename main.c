@@ -147,7 +147,7 @@ void free_composite (composite* composite, int freenumber) {
 
     // Only free the number if told to - this allows us to not the collect the
     // head of a composite tree, aka the "input"
-    if (freenumber) free(composite->value);
+    if (freenumber) mpz_clear(composite->value);
     free(composite);
 }
 
@@ -156,7 +156,7 @@ void free_factor (factor* factor) {
     if (factor == NULL) return;
     composite* composite = factor->power;
     free_composite(composite, 1);
-    free(factor->base);
+    mpz_clear(factor->base);
     free(factor);
 }
 
@@ -166,12 +166,12 @@ void print_composite (composite* composite) {
 }
 
 void print_composite_indent (composite* composite, int depth) {
-    printf("%*c%s\n", depth * 2 + 1, ' ', composite->value);
+    gmp_printf("%*c%Zd\n", depth * 2 + 1, ' ', composite->value);
 
     factor* factor = composite->factors;
     int index = 0;
     while (factor != NULL) {
-        printf("%*c %d:%s\n", depth * 2 + 1, ' ', index, factor->base);
+        gmp_printf("%*c %d:%Zd\n", depth * 2 + 1, ' ', index, factor->base);
         if (factor->power == NULL) {
         } else {
             print_composite_indent(factor->power, depth+1);
@@ -195,18 +195,21 @@ void free_worklist (worklist* root) {
     free(root);
 }
 
-composite* append (worklist* wl, char* number) {
+composite* append (worklist* wl, mpz_t number) {
     worklist* node = malloc(sizeof(worklist));
-    node->todo = malloc(sizeof(composite));
-    node->todo->value = number;
-    node->todo->factors = NULL;
+    node->todo = mpz_get_str(NULL, 0, number);
+
+    node->output = malloc(sizeof(composite));
+    mpz_init(node->output->value);
+    mpz_set(node->output->value, number);
+    node->output->factors = NULL;
 
     node->prev = wl;
     node->next = wl->next;
     node->next->prev = node;
     wl->next = node;
 
-    return node->todo;
+    return node->output;
 }
 
 /*--------------------------------------------------------------------*/
@@ -407,12 +410,15 @@ composite* factor_composite (char* number) {
     head->prev = head;
     head->next = head;
 
-    composite* full_factor_tree = append(head, number);
+    mpz_t n;
+    mpz_init(n);
+    mpz_set_str(n, number, 0);
+    composite* full_factor_tree = append(head, n);
     worklist* curr = head->next;
 
     while (curr->todo != NULL) {
-        debug_log("Factoring possible composite: %s\n", curr->todo->value);
-        msieve_obj* o = run_default_msieve(curr->todo->value);
+        debug_log("Factoring possible composite: %s\n", curr->todo);
+        msieve_obj* o = run_default_msieve(curr->todo);
 
         if (o == NULL) {
             fprintf(stderr, "Demo aborting due to failed factorization.");
@@ -420,19 +426,23 @@ composite* factor_composite (char* number) {
         }
 
         msieve_factor* msieve_factor = o->factors;
+        mpz_t parsed_factor;
         factor* factor_group = NULL;
         int power = 0;
         while (msieve_factor != NULL) {
+            mpz_init(parsed_factor);
+            mpz_set_str(parsed_factor, msieve_factor->number, 0);
+
             if (factor_group != NULL) {
-                debug_log("Comparing: %s %s %d\n", msieve_factor->number, factor_group->base, strcmp(factor_group->base, msieve_factor->number));
+                debug_log("Comparing: %s %s %d\n", parsed_factor, factor_group->base, msieve_factor_eq_factor_group(factor_group, parsed_factor));
             }
 
-            if (msieve_factor_eq_factor_group(factor_group, msieve_factor)) {
+            if (msieve_factor_eq_factor_group(factor_group, parsed_factor)) {
                 power++;
             } else {
                 // Schedule a power to be factorized if necessary
                 schedule_power(curr, factor_group, power);
-                factor_group = initialize_factor_group(curr->todo, factor_group, msieve_factor);
+                factor_group = initialize_factor_group(curr->output, factor_group, msieve_factor, parsed_factor);
 
                 power = 1;
             }
@@ -452,11 +462,11 @@ composite* factor_composite (char* number) {
     return full_factor_tree;
 }
 
-int msieve_factor_eq_factor_group (factor* factor_group, msieve_factor* msieve_factor) {
-    return factor_group != NULL && strcmp(factor_group->base, msieve_factor->number) == 0;
+int msieve_factor_eq_factor_group (factor* factor_group, mpz_t parsed_factor) {
+    return factor_group != NULL && mpz_cmp(factor_group->base, parsed_factor) == 0;
 }
 
-factor* initialize_factor_group (composite* parent, factor* previous_group, msieve_factor* source) {
+factor* initialize_factor_group (composite* parent, factor* previous_group, msieve_factor* source, mpz_t parsed) {
     factor* new_group = malloc(sizeof(factor));
 
     // Link to previous group, or to parent if no previous group exists
@@ -469,8 +479,8 @@ factor* initialize_factor_group (composite* parent, factor* previous_group, msie
     // Set next as NULL, copy source to base
     new_group->next = NULL;
     new_group->factor_type = source->factor_type;
-    new_group->base = malloc(sizeof(char) * (strlen(source->number) + 1));
-    strcpy(new_group->base, source->number);
+    mpz_init(new_group->base); // TODO: figure out "move" from parsed to base, rather than copy
+    mpz_set(new_group->base, parsed);
 
     return new_group;
 }
@@ -481,9 +491,11 @@ void schedule_power (worklist* curr, factor* factor_group, int power) {
         debug_log("Found factors group: %s ^ %d\n", factor_group->base, power);
 
         if (power > 1) {
-            char* powstr = malloc(sizeof(char) * 100);
-            sprintf(powstr, "%d", power);
-            composite* composite = append(curr, powstr);
+            mpz_t p;
+            mpz_init(p);
+            mpz_set_si(p, power);
+            composite* composite = append(curr, p);
+            mpz_clear(p);
             factor_group->power = composite;
         } else {
             factor_group->power = NULL;
