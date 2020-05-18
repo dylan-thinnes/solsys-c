@@ -34,7 +34,6 @@ typedef struct factor {
 typedef struct worklist {
     composite* output;
     char* todo;
-    struct worklist* prev;
     struct worklist* next;
 } worklist;
 

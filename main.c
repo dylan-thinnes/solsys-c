@@ -184,15 +184,26 @@ void print_composite_indent (composite* composite, int depth) {
 /*--------------------------------------------------------------------*/
 // WORKING WITH WORKLISTS (FREE AND APPEND)
 
-void free_worklist (worklist* root) {
-    if (root == NULL) return;
-    worklist* wl = root->next;
-    while (wl != root) {
-        wl = wl->next;
-        free(wl->prev);
-    }
+worklist* free_worklist_to_next (worklist* wl) {
+    if (wl == NULL) return NULL;
+    worklist* next = wl->next;
+    free(wl->todo);
+    free(wl);
+    return next;
+}
 
-    free(root);
+worklist* init_worklist (mpz_t number) {
+    worklist* node = malloc(sizeof(worklist));
+    node->todo = mpz_get_str(NULL, 0, number);
+
+    node->output = malloc(sizeof(composite));
+    mpz_init(node->output->value);
+    mpz_set(node->output->value, number);
+    node->output->factors = NULL;
+
+    node->next = NULL;
+
+    return node;
 }
 
 composite* append (worklist* wl, mpz_t number) {
@@ -204,10 +215,11 @@ composite* append (worklist* wl, mpz_t number) {
     mpz_set(node->output->value, number);
     node->output->factors = NULL;
 
-    node->prev = wl;
-    node->next = wl->next;
-    node->next->prev = node;
-    wl->next = node;
+    node->next = NULL;
+    if (wl != NULL) {
+        node->next = wl->next;
+        wl->next = node;
+    }
 
     return node->output;
 }
@@ -395,7 +407,7 @@ int factorization_demo(char* number) {
 int recursive_demo (char* number) {
     composite* tree = factor_composite(number);
     print_composite(tree);
-    free_composite(tree, 0);
+    free_composite(tree, 1);
 
     return 0;
 }
@@ -405,18 +417,14 @@ composite* factor_composite (char* number) {
 	uint32 seed1, seed2;
 	get_random_seeds(&seed1, &seed2);
 
-    worklist* head = malloc(sizeof(worklist));
-    head->todo = NULL;
-    head->prev = head;
-    head->next = head;
-
     mpz_t n;
     mpz_init(n);
     mpz_set_str(n, number, 0);
-    composite* full_factor_tree = append(head, n);
-    worklist* curr = head->next;
+    worklist* curr = init_worklist(n);
+    mpz_clear(n);
+    composite* full_factor_tree = curr->output;
 
-    while (curr->todo != NULL) {
+    while (curr != NULL && curr->todo != NULL) {
         debug_log("Factoring possible composite: %s\n", curr->todo);
         msieve_obj* o = run_default_msieve(curr->todo);
 
@@ -448,6 +456,7 @@ composite* factor_composite (char* number) {
             }
 
             msieve_factor = msieve_factor->next;
+            mpz_clear(parsed_factor);
         }
 
         // Schedule a power to be factorized if necessary
@@ -455,10 +464,10 @@ composite* factor_composite (char* number) {
 
         msieve_obj_free(o);
 
-        curr = curr->next;
+        //curr = curr->next;
+        curr = free_worklist_to_next(curr);
     }
 
-    free_worklist(head);
     return full_factor_tree;
 }
 
