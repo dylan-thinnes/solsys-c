@@ -270,7 +270,7 @@ worklist* init_worklist (mpz_t number) {
     return node;
 }
 
-composite* append (worklist* wl, mpz_t number) {
+composite* schedule_factorization (worklist* wl, mpz_t number) {
     composite* output = malloc(sizeof(composite));
     mpz_swap(output->value, number);
     output->factors = NULL;
@@ -615,7 +615,7 @@ void schedule_spacer (worklist* curr, factor* factor_group) {
 
         mpz_sub_ui(delta, delta, 1);
         if (mpz_sgn(delta) > 0) {
-            factor_group->spacer = append(curr, delta);
+            factor_group->spacer = schedule_factorization(curr, delta);
         } else {
             factor_group->spacer = NULL;
             mpz_clear(delta);
@@ -632,7 +632,7 @@ void schedule_power (worklist* curr, factor* factor_group, int power) {
             mpz_t p;
             mpz_init(p);
             mpz_set_si(p, power);
-            composite* composite = append(curr, p);
+            composite* composite = schedule_factorization(curr, p);
             factor_group->power = composite;
         } else {
             factor_group->power = NULL;
