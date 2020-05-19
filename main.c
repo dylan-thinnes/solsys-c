@@ -4,6 +4,7 @@ int G_DEBUG = 0;
 int seed1;
 int seed2;
 
+mpz_t factorization_threshold;
 mpz_t logint_threshold;
 
 enum demotype { flag_recursive, flag_factorization, flag_primecount, flag_logint, flag_logint_err };
@@ -15,6 +16,8 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
+    mpz_init(factorization_threshold);
+    mpz_set_str(factorization_threshold, "1", 0);
     mpz_init(logint_threshold);
     mpz_set_str(logint_threshold, "10000000000000", 0);
 
@@ -26,6 +29,11 @@ int main(int argc, char** argv) {
             argv[ii] = NULL;
         } else if (streq("-f", argv[ii]) || streq("--factorization", argv[ii])) {
             flag = flag_factorization;
+            argv[ii] = NULL;
+        } else if (streq("-t", argv[ii]) || streq("--threshold", argv[ii])) {
+            argv[ii] = NULL;
+            ii++;
+            mpz_set_str(factorization_threshold, argv[ii], 0);
             argv[ii] = NULL;
         } else if (streq("-p", argv[ii]) || streq("--primecount", argv[ii])) {
             flag = flag_primecount;
@@ -92,6 +100,7 @@ int main(int argc, char** argv) {
         logint_free();
     }
 
+    mpz_clear(factorization_threshold);
     mpz_clear(logint_threshold);
 }
 
@@ -263,8 +272,8 @@ composite* schedule_factorization (worklist* wl, mpz_t number) {
     mpz_set(output->value, number);
     output->factors = NULL;
 
-    // If the composite to factorize is 1, don't schedule a factorization.
-    if (mpz_cmp_ui(output->value, 1) == 0) return output;
+    // If the composite to factorize is below the threshold, don't schedule a factorization.
+    if (mpz_cmp(output->value, factorization_threshold) <= 0) return output;
 
     // Otherwise, schedule a factorization
     worklist* node = malloc(sizeof(worklist));
