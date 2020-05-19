@@ -271,12 +271,17 @@ worklist* init_worklist (mpz_t number) {
 }
 
 composite* append (worklist* wl, mpz_t number) {
+    composite* output = malloc(sizeof(composite));
+    mpz_swap(output->value, number);
+    output->factors = NULL;
+
+    // If the composite to factorize is 1, don't schedule a factorization.
+    if (mpz_cmp_ui(output->value, 0) == 0) return output;
+
+    // Otherwise, schedule a factorization
     worklist* node = malloc(sizeof(worklist));
     node->todo = mpz_get_str(NULL, 0, number);
-
-    node->output = malloc(sizeof(composite));
-    mpz_swap(node->output->value, number);
-    node->output->factors = NULL;
+    node->output = output;
 
     node->next = NULL;
     if (wl != NULL) {
@@ -284,7 +289,7 @@ composite* append (worklist* wl, mpz_t number) {
         wl->next = node;
     }
 
-    return node->output;
+    return output;
 }
 
 /*--------------------------------------------------------------------*/
