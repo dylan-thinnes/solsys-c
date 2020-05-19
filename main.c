@@ -213,8 +213,7 @@ worklist* init_worklist (mpz_t number) {
     node->todo = mpz_get_str(NULL, 0, number);
 
     node->output = malloc(sizeof(composite));
-    mpz_init(node->output->value);
-    mpz_set(node->output->value, number);
+    mpz_swap(node->output->value, number);
     node->output->factors = NULL;
 
     node->next = NULL;
@@ -227,8 +226,7 @@ composite* append (worklist* wl, mpz_t number) {
     node->todo = mpz_get_str(NULL, 0, number);
 
     node->output = malloc(sizeof(composite));
-    mpz_init(node->output->value);
-    mpz_set(node->output->value, number);
+    mpz_swap(node->output->value, number);
     node->output->factors = NULL;
 
     node->next = NULL;
@@ -437,7 +435,6 @@ composite* factor_composite (char* number) {
     mpz_init(n);
     mpz_set_str(n, number, 0);
     worklist* curr = init_worklist(n);
-    mpz_clear(n);
     composite* full_factor_tree = curr->output;
 
     while (curr != NULL && curr->todo != NULL) {
@@ -463,6 +460,7 @@ composite* factor_composite (char* number) {
 
             if (msieve_factor_eq_factor_group(factor_group, parsed_factor)) {
                 power++;
+                mpz_clear(parsed_factor);
             } else {
                 // Schedule a power to be factorized if necessary
                 schedule_power(curr, factor_group, power);
@@ -476,7 +474,6 @@ composite* factor_composite (char* number) {
             }
 
             msieve_factor = msieve_factor->next;
-            mpz_clear(parsed_factor);
         }
 
         // Schedule a power to be factorized if necessary
@@ -512,8 +509,7 @@ factor* initialize_factor_group (composite* parent, factor* previous_group, msie
     // Set next as NULL, copy source to base
     new_group->next = NULL;
     new_group->factor_type = source->factor_type;
-    mpz_init(new_group->base); // TODO: figure out "move" from parsed to base, rather than copy
-    mpz_set(new_group->base, parsed);
+    mpz_swap(new_group->base, parsed);
 
     // Calculate pi for the new_group's base value
     pix_using_threshold(new_group->base, new_group->pi);
@@ -567,9 +563,8 @@ void schedule_spacer (worklist* curr, factor* factor_group) {
             factor_group->spacer = append(curr, delta);
         } else {
             factor_group->spacer = NULL;
+            mpz_clear(delta);
         }
-
-        mpz_clear(delta);
     }
 }
 
@@ -583,7 +578,6 @@ void schedule_power (worklist* curr, factor* factor_group, int power) {
             mpz_init(p);
             mpz_set_si(p, power);
             composite* composite = append(curr, p);
-            mpz_clear(p);
             factor_group->power = composite;
         } else {
             factor_group->power = NULL;
