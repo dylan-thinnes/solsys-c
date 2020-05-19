@@ -633,16 +633,12 @@ void schedule_power (worklist* curr, factor* factor_group, int power) {
     if (factor_group != NULL) {
         debug_log("Found factors group: %s ^ %d\n", factor_group->base, power);
 
-        if (power > 1) {
-            mpz_t p;
-            mpz_init(p);
-            mpz_set_si(p, power);
-            composite* composite = schedule_factorization(curr, p);
-            mpz_clear(p);
-            factor_group->power = composite;
-        } else {
-            factor_group->power = NULL;
-        }
+        mpz_t p;
+        mpz_init(p);
+        mpz_set_si(p, power);
+        composite* composite = schedule_factorization(curr, p);
+        mpz_clear(p);
+        factor_group->power = composite;
     }
 }
 
