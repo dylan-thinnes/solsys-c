@@ -1,17 +1,3 @@
-/*--------------------------------------------------------------------
-This source distribution is placed in the public domain by its author,
-Jason Papadopoulos. You may use it for any purpose, free of charge,
-without having to notify anyone. I disclaim any responsibility for any
-errors.
-
-Optionally, please be nice and tell me if you find this source to be
-useful. Again optionally, if you add to the functionality present here
-please consider making those additions public too, so that others may 
-benefit from your work.	
-
-$Id: demo.c 984 2015-03-28 16:26:48Z jasonp_sf $
---------------------------------------------------------------------*/
-
 #include "main.h"
 
 int G_DEBUG = 0;
