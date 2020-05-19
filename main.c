@@ -62,6 +62,7 @@ int main(int argc, char** argv) {
     // Setup/report demo type
     if (flag == flag_recursive) {
         debug_log("RECURSIVE DEMO\n");
+        logint_initialize();
     } else if (flag == flag_primecount) {
         debug_log("PRIMECOUNT DEMO\n");
     } else if (flag == flag_logint) {
@@ -97,7 +98,9 @@ int main(int argc, char** argv) {
     free(inp);
 
     // Teardown demo type
-    if (flag == flag_logint) {
+    if (flag == flag_recursive) {
+        logint_free();
+    } else if (flag == flag_logint_err) {
         logint_free();
     } else if (flag == flag_logint_err) {
         logint_free();
