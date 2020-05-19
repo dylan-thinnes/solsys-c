@@ -197,6 +197,81 @@ void print_composite_indent (composite* composite, int depth) {
     }
 }
 
+// Turns composite / factor trees into JSON
+void indent (FILE* out, int depth) {
+    if (depth == 0) return;
+    fprintf(out, "%*c", depth * 2, ' ');
+}
+
+void to_json (FILE* out, composite* composite) {
+    to_json_composite(out, composite, 0);
+    fprintf(out, "\n");
+}
+
+void to_json_composite (FILE* out, composite* composite, int depth) {
+    if (composite == NULL) {
+        fprintf(out, "null");
+    } else {
+        fprintf(out, "{\n");
+
+        indent(out, depth+1);
+        gmp_fprintf(out, "\"value\": \"%Zd\",\n", composite->value);
+
+        factor* f = composite->factors;
+        indent(out, depth+1);
+        fprintf(out, "\"factors\": [");
+        if (f == NULL) {
+            fprintf(out, "]\n");
+        } else {
+            int first = 1;
+
+            while (f != NULL) {
+                if (!first) {
+                    fprintf(out, ",");
+                } else {
+                    first = 0;
+                }
+
+                fprintf(out, "\n");
+                indent(out, depth+2);
+                to_json_factor(out, f, depth+2);
+                f = f->next;
+            }
+
+            fprintf(out, "\n");
+            indent(out, depth+1);
+            fprintf(out, "]\n");
+        }
+
+        indent(out, depth);
+        fprintf(out, "}");
+    }
+}
+
+void to_json_factor (FILE* out, factor* factor, int depth) {
+    if (factor == NULL) {
+        fprintf(out, "null");
+    } else {
+        fprintf(out, "{\n");
+
+        indent(out, depth+1);
+        gmp_fprintf(out, "\"base\": \"%Zd\",\n", factor->base);
+        indent(out, depth+1);
+        fprintf(out, "\"power\": ");
+        to_json_composite(out, factor->power, depth+1);
+        fprintf(out, ",\n");
+        indent(out, depth+1);
+        gmp_fprintf(out, "\"pi\": \"%Zd\",\n", factor->pi);
+        indent(out, depth+1);
+        fprintf(out, "\"spacer\": ");
+        to_json_composite(out, factor->spacer, depth+1);
+        fprintf(out, "\n");
+
+        indent(out, depth);
+        fprintf(out, "}");
+    }
+}
+
 /*--------------------------------------------------------------------*/
 // WORKING WITH WORKLISTS (FREE AND APPEND)
 
@@ -420,7 +495,8 @@ int factorization_demo(char* number) {
 
 int recursive_demo (char* number) {
     composite* tree = factor_composite(number);
-    print_composite(tree);
+    //print_composite(tree);
+    to_json(stdout, tree);
     free_composite(tree, 1);
 
     return 0;

@@ -45,6 +45,9 @@ void free_composite(composite*, int freenumber);
 void free_factor(factor*);
 void print_composite(composite*);
 void print_composite_indent(composite*, int depth);
+void to_json(FILE*, composite*);
+void to_json_composite(FILE*, composite*, int depth);
+void to_json_factor(FILE*, factor*, int depth);
 
 void free_worklist(worklist*);
 composite* append (worklist*, mpz_t number);
