@@ -48,7 +48,7 @@ void to_json_composite(FILE*, composite*, int depth);
 void to_json_factor(FILE*, factor*, int depth);
 
 void free_worklist(worklist*);
-composite* append (worklist*, mpz_t number);
+composite* schedule_factorization (worklist**, mpz_t number);
 
 msieve_obj *g_curr_factorization;
 void handle_signal(int sig);
