@@ -171,32 +171,6 @@ void free_factor (factor* factor) {
     free(factor);
 }
 
-// Prints composites recursively
-void print_composite (composite* composite) {
-    print_composite_indent(composite, 0);
-}
-
-void print_composite_indent (composite* composite, int depth) {
-    gmp_printf("%*c%Zd\n", depth * 2 + 1, ' ', composite->value);
-
-    factor* factor = composite->factors;
-    while (factor != NULL) {
-        if (factor->spacer != NULL) {
-            gmp_printf("%*c ===\n", depth * 2 + 1, ' ', factor->base, factor->pi);
-            print_composite_indent(factor->spacer, depth+1);
-            gmp_printf("%*c ===\n", depth * 2 + 1, ' ', factor->base, factor->pi);
-        }
-
-        gmp_printf("%*c %Zd (%Zd)\n", depth * 2 + 1, ' ', factor->base, factor->pi);
-
-        if (factor->power == NULL) {
-        } else {
-            print_composite_indent(factor->power, depth+1);
-        }
-        factor = factor->next;
-    }
-}
-
 // Turns composite / factor trees into JSON
 void indent (FILE* out, int depth) {
     if (depth == 0) return;
