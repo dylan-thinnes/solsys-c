@@ -252,21 +252,7 @@ worklist* free_worklist_to_next (worklist* wl) {
     return next;
 }
 
-worklist* init_worklist (mpz_t number) {
-    worklist* node = malloc(sizeof(worklist));
-    node->todo = mpz_get_str(NULL, 0, number);
-
-    node->output = malloc(sizeof(composite));
-    mpz_init(node->output->value);
-    mpz_set(node->output->value, number);
-    node->output->factors = NULL;
-
-    node->next = NULL;
-
-    return node;
-}
-
-composite* schedule_factorization (worklist* wl, mpz_t number) {
+composite* schedule_factorization (worklist** wl, mpz_t number) {
     composite* output = malloc(sizeof(composite));
     mpz_init(output->value);
     mpz_set(output->value, number);
@@ -281,9 +267,11 @@ composite* schedule_factorization (worklist* wl, mpz_t number) {
     node->output = output;
 
     node->next = NULL;
-    if (wl != NULL) {
-        node->next = wl->next;
-        wl->next = node;
+    if (*wl != NULL) {
+        node->next = (*wl)->next;
+        (*wl)->next = node;
+    } else {
+        (*wl) = node;
     }
 
     return output;
@@ -486,9 +474,9 @@ composite* factor_composite (char* number) {
     mpz_t n;
     mpz_init(n);
     mpz_set_str(n, number, 0);
-    worklist* curr = init_worklist(n);
+    worklist* curr = NULL;
+    composite* full_factor_tree = schedule_factorization(&curr, n);
     mpz_clear(n);
-    composite* full_factor_tree = curr->output;
 
     while (curr != NULL && curr->todo != NULL) {
         debug_log("Factoring possible composite: %s\n", curr->todo);
@@ -614,7 +602,7 @@ void schedule_spacer (worklist* curr, factor* factor_group) {
 
         mpz_sub_ui(delta, delta, 1);
         if (mpz_sgn(delta) > 0) {
-            factor_group->spacer = schedule_factorization(curr, delta);
+            factor_group->spacer = schedule_factorization(&curr, delta);
         } else {
             factor_group->spacer = NULL;
         }
@@ -631,7 +619,7 @@ void schedule_power (worklist* curr, factor* factor_group, int power) {
         mpz_t p;
         mpz_init(p);
         mpz_set_si(p, power);
-        composite* composite = schedule_factorization(curr, p);
+        composite* composite = schedule_factorization(&curr, p);
         mpz_clear(p);
         factor_group->power = composite;
     }
