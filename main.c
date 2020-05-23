@@ -364,7 +364,7 @@ msieve_obj * run_default_msieve (char * input) {
 
 msieve_obj * make_default_msieve_obj() {
 
-	char *savefile_name = NULL;
+	char *savefile_name = "/tmp/msieve.dat";
 	char *logfile_name = NULL;
 	char *infile_name = "worktodo.ini";
 	char *nfs_fbfile_name = NULL;
