@@ -7,6 +7,6 @@
 
 INCLUDES="-Imsieve-1.53/include -Iprimecount/include -Ilogint/"
 LOCAL_LIBS="msieve-1.53/libmsieve.a primecount/libprimecount.a primecount/lib/primesieve/libprimesieve.a logint/li.o"
-SYSTEM_LIBS="-ldl -lz -lgmp -lm -lpthread -lgomp -lstdc++ -lmpfr"
+SYSTEM_LIBS="-ldl -lz -lm -lgomp -lpthread -lstdc++ -lmpfr -lgmp"
 
-gcc $@ $INCLUDES main.c $LOCAL_LIBS $SYSTEM_LIBS
+gcc $INCLUDES -static main.c $LOCAL_LIBS $SYSTEM_LIBS
